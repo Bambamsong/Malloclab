@@ -14,7 +14,7 @@
 #include "memlib.h"
 #include "config.h"
 
-/* private variables */
+/* private global variables */
 static char *mem_start_brk;  /* points to first byte of heap */
 static char *mem_brk;        /* points to last byte of heap */
 static char *mem_max_addr;   /* largest legal heap address */ 
@@ -61,6 +61,7 @@ void *mem_sbrk(int incr)
 
     if ( (incr < 0) || ((mem_brk + incr) > mem_max_addr)) {
 	errno = ENOMEM;
+    //ENOMEM : 메모리 부족을 의미하는 오류코드
 	fprintf(stderr, "ERROR: mem_sbrk failed. Ran out of memory...\n");
 	return (void *)-1;
     }
