@@ -200,7 +200,7 @@ void *mm_malloc(size_t size)
 }
 
 /* find fit 구현해보자! */
-static void *find_fit(size_t asize){
+static void *next_fit(size_t asize){
     void *bp;
     for (bp = heap_listp; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp)){ // init에서 쓴 heap_listp를 쓴다. 처음 출발 뒤 그 다음은 regular block 첫번째 헤더 뒤(블록포인트)
         // for 문이 계속 돌면 최종적으로 Epilogue header까지 간다. epilogue header의 size정보는 0 이니까 종료가 된다.
