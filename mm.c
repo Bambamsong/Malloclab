@@ -230,7 +230,7 @@ static void place(void * bp, size_t asize){ // 들어갈 위치를 포인터로 
 
 }
 
-
+//test
 
 /*
  * mm_free - Freeing a block does nothing.
