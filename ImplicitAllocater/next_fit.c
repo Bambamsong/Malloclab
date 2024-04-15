@@ -77,6 +77,9 @@ team_t team = {
 #define PREV_BLKP(bp) ((char *)(bp) - GET_SIZE(((char *)(bp)    -   DSIZE)))
 
 static char * heap_listp; // 처음에 사용할 가용블록 힙을 만들어줌
+static char * start_nextfit;
+
+
 static void *find_fit(size_t asize);
 static void place(void * bp, size_t asize);
 static void *extend_heap(size_t words);
@@ -95,6 +98,7 @@ int mm_init(void)
     PUT(heap_listp + (2*WSIZE), PACK(DSIZE, 1));        /* Prologue footer */
     PUT(heap_listp + (3*WSIZE), PACK(0, 1));            /* Epilogue header */
     heap_listp += (2*WSIZE);                            // Prologue header와 푸터 사이로 포인터를 옮긴다. header 뒤 위치. 다른블록에 가기위해서 항상(bp)를 가지고 따지니까!
+    start_nextfit = heap_listp;
 
     if (extend_heap(CHUNKSIZE/WSIZE) == NULL) // extend heap을 통해 시작할 때 한번 heap을 늘려줌. 늘리는 양은 상관없음. 
         return -1;
@@ -130,6 +134,7 @@ static void *coalesce(void *bp){
     size_t size = GET_SIZE(HDRP(bp)); // 지금 블록의 사이즈 확인
 
     if (prev_alloc && next_alloc){ // CASE 1 - 이전블록과 다음블록 모두 할당. 현재블록의 상태는 할당에서 가용으로 변경
+        start_nextfit = bp;
         return bp; // 이미 free에서 가용이 되어있으니 여기선 따로 free 할 필요 없음
     }
 
@@ -152,7 +157,7 @@ static void *coalesce(void *bp){
         PUT(FTRP(NEXT_BLKP(bp)), PACK(size, 0));
         bp = PREV_BLKP(bp);
     }
-
+    start_nextfit = bp;
     return bp;                                      // 4개 케이스중에 적용된거로 bp 리턴
 }                                                   // 참고로 bp는 위에서 정했듯 항상 블록의 헤더 뒤에 위치하는게 좋기 때문에 연결이 끝나면 bp는 블록의 헤더에 위치해야 한다.
 
@@ -200,16 +205,15 @@ void *mm_malloc(size_t size)
 }
 
 /* find fit 구현해보자! */
-static void *find_fit(size_t asize){
-    void *bp;
-    for (bp = heap_listp; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp)){ // init에서 쓴 heap_listp를 쓴다. 처음 출발 뒤 그 다음은 regular block 첫번째 헤더 뒤(블록포인트)
-        // for 문이 계속 돌면 최종적으로 Epilogue header까지 간다. epilogue header의 size정보는 0 이니까 종료가 된다.
-        if (!GET_ALLOC(HDRP(bp)) && (asize <= GET_SIZE(HDRP(bp)))){ // 이 블록이 가용하고(not 할당) asize를 담을 수 있는 크기라면
-            return bp; // 내가 넣을 수 있는 블록만 찾으면 되니까, 바로 리턴
+static void *find_fit(size_t adjusted_size) {
+    char *bp = start_nextfit;
+
+    for (bp = start_nextfit; GET_SIZE(HDRP(bp)) != 0; bp = NEXT_BLKP(bp)) {
+        if (!GET_ALLOC(HDRP(bp)) && GET_SIZE(HDRP(bp)) >= adjusted_size) { // 할당되지 않았고(가용이고) 사이즈가 
+            return bp;
         }
     }
-    // 모든 for문을 돌아도 적당한 사이즈가 없다면
-    return NULL; // no fit
+    return NULL;
 }
 
 /* place 함수를 구현해보자! */
@@ -225,7 +229,7 @@ static void place(void * bp, size_t asize){ // 들어갈 위치를 포인터로 
     }
     else {
         PUT(HDRP(bp), PACK(csize, 1));
-        PUT(FTRP(bp), PACK(csize, 1));
+        PUT(FTRP(bp), PACK(csize, 1)); 
     }
 
 }
