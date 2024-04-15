@@ -85,8 +85,9 @@ static void *extend_heap(size_t words);
 static void *find_fit(size_t asize);
 static void place(void * bp, size_t asize);
 
-static void splice_free_block(void *bp);
-static void add_free_block(void *bp);
+static void splice_free_block(void *bp)
+static void add_free_block(void *bp)
+
 
 
 int mm_init(void)
@@ -95,14 +96,14 @@ int mm_init(void)
     if ((free_listp = mem_sbrk( 8 * WSIZE )) == (void *) - 1){
         return -1;
     } //메모리 시스템에서 4워드를 가져와서 빈 가용 리스트를 만들수 있도록 초기화
-    PUT(free_listp, 0); // 지금부터 여기는 힙입니다                  /* 정렬 패딩 */ // 블록 생성시 넣는 padding을 한 워드 크기만큼 생성. free_listp 위치는 맨 처음
-    PUT(free_listp+ (1 * WSIZE), PACK(2 * WSIZE, 1));         /* Prologue header */
-    PUT(free_listp+ (2 * WSIZE), PACK(2 * WSIZE, 1));         /* Prologue footer */
-    PUT(free_listp+ (3 * WSIZE), PACK(2 * DSIZE, 0));         /* 첫 가용 블록의 헤더 */
-    PUT(free_listp+ (4 * WSIZE), NULL);                       /* 이전 가용 블록의 주소 */
-    PUT(free_listp+ (5 * WSIZE), NULL);                       /* 다음 가용 블록의 주소 */
-    PUT(free_listp+ (6 * WSIZE), PACK(2 * DSIZE, 0));
-    PUT(free_listp+ (7 * WSIZE), PACK(0 , 1));                /* Epilogue header */
+    PUT(heap_listp, 0); // 지금부터 여기는 힙입니다                  /* 정렬 패딩 */ // 블록 생성시 넣는 padding을 한 워드 크기만큼 생성. heap_listp의 위치는 맨 처음
+    PUT(heap_listp + (1 * WSIZE), PACK(2 * WSIZE, 1));         /* Prologue header */
+    PUT(heap_listp + (2 * WSIZE), PACK(2 * WSIZE, 1));         /* Prologue footer */
+    PUT(heap_listp + (3 * WSIZE), PACK(2 * DSIZE, 0));         /* 첫 가용 블록의 헤더 */
+    PUT(heap_listp + (4 * WSIZE), NULL);                       /* 이전 가용 블록의 주소 */
+    PUT(heap_listp + (5 * WSIZE), NULL);                       /* 다음 가용 블록의 주소 */
+    PUT(heap_listp + (6 * WSIZE), PACK(2 * DSIZE, 0));
+    PUT(heap_listp + (7 * WSIZE), PACK(0 , 1));                /* Epilogue header */
     
     free_listp += (4 * WSIZE);                                 /* 첫 가용 블록의 bp */
         if (extend_heap(CHUNKSIZE/WSIZE) == NULL) // extend heap을 통해 시작할 때 한번 heap을 늘려줌. 늘리는 양은 상관없음. 
@@ -165,7 +166,6 @@ static void *find_fit(size_t asize)
         if ((asize <= GET_SIZE(HDRP(bp)))) // 적합한 사이즈의 블록을 찾으면 반환
             return bp;
         bp = GET_SUCC(bp); // 다음 가용 블록으로 이동
-
     }
     return NULL;
 }
