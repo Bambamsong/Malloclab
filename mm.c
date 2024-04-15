@@ -165,6 +165,7 @@ static void *find_fit(size_t asize)
         if ((asize <= GET_SIZE(HDRP(bp)))) // 적합한 사이즈의 블록을 찾으면 반환
             return bp;
         bp = GET_SUCC(bp); // 다음 가용 블록으로 이동
+
     }
     return NULL;
 }
