@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "type": "cppdbg",
+            "request": "launch",
+            "name": "Debug with gdb",
+            "program": "${workspaceFolder}/mdriver",
+            "args": [],
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
